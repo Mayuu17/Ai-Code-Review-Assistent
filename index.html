@@ -119,7 +119,7 @@ const KEY='cra-history-v1';
 let hist=[];try{hist=JSON.parse(localStorage.getItem(KEY)||'[]')}catch{hist=[]}
 let storageOk=true;
 const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(hist));storageOk=true}catch{storageOk=false}};
-let st={delId:null,view:'dash',lang:'Python',code:'',sampleId:null,loading:false,err:'',res:null,title:'',saveMsg:'',open:null,editing:false,confirmDel:false,aiOk:null};
+let st={delId:null,view:'dash',lang:'Python',code:'',sampleId:null,loading:false,err:'',res:null,title:'',saveMsg:'',open:null,editing:false,confirmDel:false,aiOk:null,apiKey:localStorage.getItem('cra-api-key')||''};
 
 const WARN=`<section class="warn" role="note"><h2>AI Suggestions — Verify Before Use</h2><p>These findings come from an AI model. They may be wrong or incomplete, and real problems may be missed. Review each one, test any change yourself, and decide what to accept. This tool does not guarantee that code is bug-free, secure, or production-ready.</p></section>`;
 
@@ -161,7 +161,7 @@ function skel(){return `<section class="card" aria-hidden="true">${[90,100,70,95
 function newView(){const isS=st.sampleId&&st.code===SAMPLES[st.sampleId].code;
 return `<div class="ph"><h1>New code review</h1><p class="lead mu">Paste code, choose its language, and let the AI take a first pass. You stay in charge of every decision.</p></div>
 <section class="editor" aria-label="Code editor"><div class="ebar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><label><span class="sr">Language</span><select id="lang">${LANGS.map(l=>`<option ${l===st.lang?'selected':''}>${l}</option>`).join('')}</select></label>
-<label><span class="sr">Demo sample</span><select id="samp"><option value="">Load sample code...</option>${Object.entries(SAMPLES).map(([k,s])=>`<option value="${k}">${s.label}</option>`).join('')}</select></label></div>
+<label><span class="sr">Demo sample</span><select id="samp"><option value="">Load sample code...</option>${Object.entries(SAMPLES).map(([k,s])=>`<option value="${k}">${s.label}</option>`).join('')}</select></label><label style="margin-left:auto"><span class="sr">Gemini API Key</span><input id="keyInp" type="password" placeholder="Gemini API Key (optional)" value="${esc(st.apiKey)}" title="Enter your Gemini API key if not configured on the server" style="padding:.35rem .6rem;font-size:.82rem;width:200px;border-radius:8px;border:1px solid #d9cffa"></label></div>
 <textarea class="code" id="code" rows="14" spellcheck="false" aria-label="Your code" placeholder="Paste your code here...">${esc(st.code)}</textarea>
 <div class="efoot"><span class="mu sm" id="cnt">${st.code.length} / ${MAX} characters</span>${isS?'<span class="tag sm-t">Sample code (predefined). Its analysis still comes from a real AI call.</span>':''}</div></section>
 <div class="row between act"><p class="notice">${ic('alert',16)}AI suggestions may be incorrect. Verify before use.</p><button class="btn lg" data-a="analyze" ${st.loading?'disabled':''}>${st.loading?'Analyzing...':ic('play',16)+'Analyze Code'}</button></div>
@@ -194,7 +194,8 @@ async function analyze(){
  if(st.code.length>MAX){st.err=`Code is too long (${st.code.length} characters). The limit is ${MAX}.`;return render()}
  st.loading=true;st.res=null;render();
  try{
-  const r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:st.code,language:st.lang})});
+  const b={code:st.code,language:st.lang};if(st.apiKey)b.apiKey=st.apiKey;
+  const r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
   let d=null;try{d=await r.json()}catch{}
   if(!r.ok)throw{code:'api',message:d?.error?.message||`Request failed (${r.status}).`};
   const raw=d?.analysis;
@@ -227,7 +228,10 @@ document.addEventListener('click',e=>{
   else if(a==='del'){hist=hist.filter(x=>x.id!==r.id);persist();st.confirmDel=false;st.view='hist'}
   render()}
 });
-document.addEventListener('input',e=>{if(e.target.id==='code'){st.code=e.target.value;st.err='';const c=$('#cnt');if(c)c.textContent=`${st.code.length} / ${MAX} characters`}});
+document.addEventListener('input',e=>{
+ if(e.target.id==='code'){st.code=e.target.value;st.err='';const c=$('#cnt');if(c)c.textContent=`${st.code.length} / ${MAX} characters`}
+ if(e.target.id==='keyInp'){st.apiKey=e.target.value.trim();try{localStorage.setItem('cra-api-key',st.apiKey)}catch{}}
+});
 document.addEventListener('change',e=>{
  if(e.target.id==='lang')st.lang=e.target.value;
  if(e.target.id==='samp'&&e.target.value){const x=SAMPLES[e.target.value];st.code=x.code;st.lang=x.lang;st.sampleId=e.target.value;st.title=x.title;st.res=null;st.err='';st.saveMsg='';render()}

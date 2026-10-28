@@ -26,9 +26,10 @@ export default async function handler(req, res) {
   if (code.length > MAX) return fail(res, 400, 'VALIDATION', `Code is too long. Limit is ${MAX} characters.`);
   if (!LANGS.includes(language)) return fail(res, 400, 'VALIDATION', 'Please choose a supported language.');
 
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) return fail(res, 503, 'NO_API_KEY', 'The server has no Gemini API key. Add GEMINI_API_KEY in the host settings and redeploy.');
-  const model = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
+  const userKey = typeof req.body?.apiKey === 'string' && req.body.apiKey.trim() ? req.body.apiKey.trim() : null;
+  const key = process.env.GEMINI_API_KEY || userKey;
+  if (!key) return fail(res, 503, 'NO_API_KEY', 'No Gemini API key provided. Enter your Gemini API key in the page or set GEMINI_API_KEY on the host.');
+  const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), Number(process.env.GEMINI_TIMEOUT_MS) || 50000);
