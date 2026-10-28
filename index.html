@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="description" content="AI Code Review Assistant: human-in-the-loop AI code review."><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI Code Review Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#14173b;--tx:#3a4157;--mu:#586079;--bd:#e4dcfb;--in:#4f46e5;--pu:#7c3aed;--bl:#2563eb;--cy:#0891b2;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 90px)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--tx);font:16px/1.6 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#fff linear-gradient(180deg,#efe8ff 0,#f8f5ff 420px,#fff 900px) no-repeat}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:#fff;z-index:11}
+.wrap{max-width:1080px;margin:0 auto;padding:1.25rem 1rem 3rem}
+h1,h2,h3{color:var(--ink);letter-spacing:-.015em;margin:0}h1{font-size:1.9rem;font-weight:800;line-height:1.2}h3{font-size:1.05rem;font-weight:700;margin-bottom:.6rem}
+p{margin:.3rem 0 .8rem;max-width:68ch}.lead{font-size:1.05rem;color:var(--tx)}.mu{color:var(--mu)}.sm{font-size:.86rem}.er{color:#b91c1c}.ok{color:#047857}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:rgba(255,255,255,.86);backdrop-filter:blur(10px);border-bottom:1px solid var(--bd)}
+.hd{max-width:1080px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.6rem 1.5rem;padding:.7rem 1rem}
+.logo{display:flex;align-items:center;gap:.7rem}.lg{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:grid;place-items:center;color:#fff;box-shadow:0 6px 16px -6px rgba(79,70,229,.6)}
+.brand{font-weight:700;color:var(--ink);line-height:1.2}.sub{font-size:.8rem;color:var(--mu)}
+nav{display:flex;gap:.2rem;background:#f1ecff;padding:.25rem;border-radius:12px}
+nav button{display:inline-flex;align-items:center;gap:.4rem;border:0;background:none;color:#4b5470;padding:.5rem .85rem;border-radius:9px;font:600 .88rem Inter,system-ui,sans-serif;cursor:pointer;transition:background .15s,color .15s}
+nav button:hover{color:var(--in)}nav button.on{background:#fff;color:#4338ca;box-shadow:0 1px 3px rgba(79,70,229,.2),inset 0 -2px 0 var(--pu)}
+.card{background:#fff;border:1px solid var(--bd);border-radius:16px;padding:1.25rem 1.35rem;margin-bottom:1.1rem;box-shadow:0 1px 2px rgba(79,70,229,.05),0 10px 28px -14px rgba(79,70,229,.22)}
+.row{display:flex;gap:.7rem;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:0;border-radius:10px;padding:.6rem 1.1rem;font:600 .95rem Inter,system-ui,sans-serif;cursor:pointer;box-shadow:0 8px 18px -8px rgba(79,70,229,.7);transition:transform .15s,box-shadow .15s,filter .15s}
+.btn:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.06)}.btn:disabled{opacity:.6;cursor:not-allowed}.btn.lg{padding:.8rem 1.4rem;font-size:1rem}
+.g{background:#fff;color:#4338ca;border:1px solid #cfc3f7;box-shadow:none}.g:hover:not(:disabled){background:#f6f2ff}
+.d{background:#fff;color:#b91c1c;border:1px solid #fca5a5;box-shadow:none}.d:hover:not(:disabled){background:#fef2f2}
+:focus-visible{outline:3px solid #a5b4fc;outline-offset:2px}
+label{display:flex;flex-direction:column;gap:.3rem;color:var(--mu);font-size:.88rem;font-weight:500;margin:.4rem 0}
+input,select,textarea{background:#fff;color:var(--ink);border:1px solid #d9cffa;border-radius:10px;padding:.55rem .7rem;font:inherit;max-width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--in);outline:3px solid #e0e7ff}
+.badge{display:inline-flex;align-items:center;gap:.45rem;background:#fff;border:1px solid #d9cffa;color:#5b21b6;border-radius:999px;padding:.25rem .85rem;font-size:.82rem;font-weight:600;box-shadow:0 2px 8px -4px rgba(124,58,237,.4)}.dot{width:8px;height:8px;border-radius:50%;background:var(--cy)}
+.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:2.2rem;align-items:center;padding:1.2rem 0 1.6rem}
+.hero h1{font-size:clamp(2.2rem,5.5vw,3.4rem);font-weight:800;margin:.9rem 0 .6rem;line-height:1.08}.cta{margin-top:1.2rem}
+.cp{background:#fff;border:1px solid var(--bd);border-radius:16px;box-shadow:0 24px 50px -22px rgba(79,70,229,.4);overflow:hidden}
+.cbar{display:flex;align-items:center;gap:.4rem;padding:.55rem .8rem;background:#f6f3ff;border-bottom:1px solid var(--bd);font-size:.8rem;color:var(--mu)}.cbar i,.dots i{width:10px;height:10px;border-radius:50%;background:#d8cdfb;display:inline-block}.cbar span:first-of-type{margin-left:.4rem;flex:1}
+.cp pre{background:#fff;border:0;border-radius:0;color:#26214a;max-height:none}.k{color:#6d28d9;font-weight:600}.n{color:#0e7490}.hl{background:#fff1b8;border-radius:3px}
+.note{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem;margin:0 .9rem .9rem;padding:.7rem .8rem;border:1px solid #a5f3fc;background:#ecfeff;border-radius:12px;font-size:.85rem;color:#164e63}.note p{margin:.2rem 0 0;max-width:none;flex-basis:100%}
+.cap{font-size:.78rem;color:var(--mu);margin:.5rem .2rem 0}
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));grid-auto-rows:1fr;gap:1rem;margin-bottom:1.3rem}
+.fc{margin:0;transition:transform .18s,box-shadow .18s,border-color .18s}.fc:hover{transform:translateY(-3px);border-color:#c4b5fd;box-shadow:0 14px 32px -14px rgba(79,70,229,.4)}
+.ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;margin-bottom:.8rem;background:linear-gradient(135deg,#eef2ff,#f3e8ff);color:#4f46e5}.ic.cy{background:linear-gradient(135deg,#ecfeff,#eef2ff);color:#0e7490}
+.fc p{font-size:.92rem;margin:0}
+.flow{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}.flow>div{display:flex;gap:.7rem}.flow .num{flex:none;width:30px;height:30px;border-radius:50%;background:#eef2ff;color:#4338ca;font-weight:700;display:grid;place-items:center;font-size:.9rem}.flow p{margin:0;font-size:.9rem}.flow strong{color:var(--ink)}
+.ph{margin-bottom:1rem}.ph h1{margin-bottom:.3rem}
+.editor{background:#fff;border:1px solid #d9cffa;border-radius:16px;overflow:hidden;box-shadow:0 10px 28px -14px rgba(79,70,229,.25);margin-bottom:.9rem}
+.ebar{display:flex;align-items:center;flex-wrap:wrap;gap:.6rem;padding:.6rem .8rem;background:#f6f3ff;border-bottom:1px solid var(--bd)}.dots{display:flex;gap:.35rem;margin-right:.3rem}.ebar label{margin:0}.ebar select{padding:.4rem .6rem;font-size:.88rem}
+textarea.code{display:block;width:100%;border:0;border-radius:0;background:#fcfbff;font:.9rem/1.5 ui-monospace,"Cascadia Code",Consolas,Menlo,monospace;white-space:pre;overflow:auto;resize:vertical;padding:1rem;color:#1e1b4b;tab-size:4}
+textarea.code:focus{outline:0;background:#fff}.efoot{display:flex;justify-content:space-between;gap:.5rem;flex-wrap:wrap;padding:.5rem .9rem;border-top:1px solid var(--bd);background:#faf8ff}
+.act{margin-bottom:1.2rem}.notice{display:flex;align-items:center;gap:.5rem;margin:0;font-size:.88rem;font-weight:500;color:#78350f;background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:.5rem .8rem}
+.empty{text-align:center;border:2px dashed #d9cffa;background:rgba(255,255,255,.7);border-radius:16px;padding:2rem 1rem;box-shadow:none}.empty .ic{margin:0 auto .8rem}.empty p{margin:.2rem auto .6rem}
+.errbox{display:flex;gap:.6rem;align-items:flex-start;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;border-radius:12px;padding:.8rem 1rem;margin-bottom:1rem}.errbox p{margin:0}
+.sk{height:13px;border-radius:7px;margin:.6rem 0;background:linear-gradient(90deg,#efeafd 25%,#f9f7ff 50%,#efeafd 75%);background-size:200% 100%;animation:sh 1.3s linear infinite}@keyframes sh{to{background-position:-200% 0}}
+.warn{background:#fffbeb;border:1px solid #fcd34d;color:#78350f;border-radius:14px;padding:.9rem 1.1rem;margin:1.1rem 0}.warn h2{margin:0 0 .3rem;font-size:1.1rem;color:#92400e}.warn p{margin:0}
+.tag{display:inline-flex;align-items:center;gap:.3rem;font-size:.76rem;font-weight:600;border-radius:999px;padding:.15rem .65rem;border:1px solid #e4e1ef;background:#f5f4fa;color:#475069;margin:.15rem .3rem .15rem 0}
+.ai{background:#ecfeff;color:#0e7490;border-color:#a5f3fc}.sm-t{background:#eef2ff;color:#4338ca;border-color:#c7d2fe}.hi{background:#fef2f2;color:#b91c1c;border-color:#fecaca}.me{background:#fffbeb;color:#92400e;border-color:#fde68a}.lo{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}.ver{background:#ecfdf5;color:#047857;border-color:#a7f3d0}.pen{background:#fffbeb;color:#92400e;border-color:#fde68a}
+.f{border-top:1px solid #efeafd;padding:.8rem 0 .8rem .9rem;border-left:3px solid transparent}.f:first-of-type{border-top:0}.f.s-high{border-left-color:#ef4444}.f.s-medium{border-left-color:#f59e0b}.f.s-low{border-left-color:#3b82f6}.f p{margin:.2rem 0 0}
+pre{margin:0;padding:.9rem;background:#faf9ff;border:1px solid var(--bd);border-radius:12px;overflow:auto;max-width:100%;max-height:380px;font:.86rem/1.55 ui-monospace,"Cascadia Code",Consolas,Menlo,monospace;color:#1e1b4b}
+table{width:100%;border-collapse:collapse;font-size:.9rem}th,td{text-align:left;padding:.55rem .6rem;border-bottom:1px solid #efeafd;vertical-align:top}th{color:var(--ink);background:#f8f6ff;font-weight:600}.tw{overflow-x:auto}
+.sp{width:16px;height:16px;border:2px solid #ddd6fe;border-top-color:var(--pu);border-radius:50%;animation:s .9s linear infinite;display:inline-block;vertical-align:-3px}@keyframes s{to{transform:rotate(360deg)}}
+.hl-wrap{padding:0;overflow:hidden}.hhead,.hrow{display:grid;grid-template-columns:minmax(0,2.2fr) .9fr 1.1fr 1.4fr auto;gap:.8rem;align-items:center;padding:.8rem 1.1rem}
+.hhead{background:#f8f6ff;color:var(--ink);font-size:.8rem;font-weight:600;border-bottom:1px solid var(--bd)}.hrow{border-top:1px solid #efeafd;transition:background .15s}.hrow:first-of-type{border-top:0}.hrow:hover{background:#fbfaff}
+.hrow strong{color:var(--ink);overflow-wrap:anywhere}.acts{display:flex;gap:.35rem;align-items:center;flex-wrap:wrap}
+.ib{display:inline-flex;align-items:center;gap:.3rem;background:#fff;border:1px solid #d9cffa;color:#4338ca;border-radius:8px;padding:.35rem .6rem;font:600 .8rem Inter,system-ui,sans-serif;cursor:pointer;transition:background .15s}.ib:hover{background:#f3efff}.ib.del{color:#b91c1c;border-color:#fecaca}.ib.del:hover{background:#fef2f2}
+.hm{display:none}
+@media(max-width:820px){.hero{grid-template-columns:1fr;gap:1.5rem}.flow{grid-template-columns:1fr}}
+@media(max-width:700px){.hhead{display:none}.hrow{grid-template-columns:1fr auto;gap:.5rem}.hrow .c-lang,.hrow .c-date{display:none}.hm{display:block;grid-column:1/-1;margin-top:-.3rem}.acts{grid-column:1/-1}}
+@media(max-width:640px){h1{font-size:1.55rem}nav{width:100%}nav button{flex:1;flex-direction:column;gap:.15rem;font-size:.74rem;padding:.45rem .2rem;text-align:center;line-height:1.15}.cta .btn{flex:1}.act .btn,.act .notice{flex:1 1 100%}.card{padding:1.05rem}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:3s!important;transition:none!important}.fc:hover,.btn:hover{transform:none}}
+</style>
+</head>
+<body>
+<header><div class="hd"><div class="logo"><span class="lg" id="lg"></span><div><div class="brand">AI Code Review Assistant</div><div class="sub">Smarter code. Better decisions.</div></div></div><nav aria-label="Main"></nav></div></header>
+</header>
+<main class="wrap" id="app"></main>
+<script>
+const LANGS=['JavaScript','TypeScript','Python','Java','C','C++','C#','Go','PHP','Ruby','Rust','Kotlin','SQL','Other'];
+const MAX=8000;
+const SAMPLES={
+ marks:{label:'Student marks (Python)',lang:'Python',title:'Sample: student marks',code:`def average_marks(marks):
+    total = 0
+    for m in marks:
+        total += m
+    return total / len(marks)
+
+def grade(avg):
+    if avg >= 90:
+        return "A"
+    elif avg >= 75:
+        return "B"
+    elif avg >= 50:
+        return "C"
+    return "F"
+
+students = {"Asha": [88, 92, 79], "Ravi": [], "Meena": [45, 60, "70"]}
+for name, marks in students.items():
+    avg = average_marks(marks)
+    print(name, avg, grade(avg))
+`},
+ calc:{label:'Simple calculator (JavaScript)',lang:'JavaScript',title:'Sample: simple calculator',code:`function calculate(a, b, op) {
+  if (op == '+') return a + b;
+  if (op == '-') return a - b;
+  if (op == '*') return a * b;
+  if (op == '/') return a / b;
+}
+
+const input = process.argv.slice(2);
+console.log(calculate(input[0], input[1], input[2]));
+`}};
+const $=s=>document.querySelector(s);
+const IC={code:'<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',spark:'<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/>',flask:'<path d="M9 3h6M10 3v6L4.5 19a2 2 0 0 0 1.8 3h11.4a2 2 0 0 0 1.8-3L14 9V3"/>',check:'<path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><polyline points="22 4 12 14 9 11"/>',grid:'<rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/>',plus:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/>',clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',eye:'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>',pen:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',trash:'<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V3h6v3"/>',play:'<polygon points="6 3 20 12 6 21"/>',alert:'<path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/>',file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>'};
+const ic=(n,z=20)=>`<svg width="${z}" height="${z}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg>`;
+const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const KEY='cra-history-v1';
+let hist=[];try{hist=JSON.parse(localStorage.getItem(KEY)||'[]')}catch{hist=[]}
+let storageOk=true;
+const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(hist));storageOk=true}catch{storageOk=false}};
+let st={delId:null,view:'dash',lang:'Python',code:'',sampleId:null,loading:false,err:'',res:null,title:'',saveMsg:'',open:null,editing:false,confirmDel:false,aiOk:null};
+
+const WARN=`<section class="warn" role="note"><h2>AI Suggestions — Verify Before Use</h2><p>These findings come from an AI model. They may be wrong or incomplete, and real problems may be missed. Review each one, test any change yourself, and decide what to accept. This tool does not guarantee that code is bug-free, secure, or production-ready.</p></section>`;
+
+function findings(a,empty){return a?.length?a.map(f=>`<div class="f s-${esc(f.severity||'low')}"><strong>${esc(f.title)}</strong> <span class="tag ${f.severity==='high'?'hi':f.severity==='medium'?'me':'lo'}">${esc(f.severity||'low')}</span><span class="tag">${f.confirmed?'Likely real':'Not confirmed'}</span>${f.line?`<div class="mu sm">Location: ${esc(f.line)}</div>`:''}<p>${esc(f.detail)}</p></div>`).join(''):`<p class="mu">${empty}</p>`}
+function results(a,lang){
+ return `<span class="tag ai">Generated by AI (not part of your code)</span>
+ <section class="card"><h3>Code explanation</h3><p>${esc(a.explanation||'No explanation returned.')}</p></section>
+ <section class="card"><h3>Potential bugs and incorrect logic</h3>${findings(a.bugs,'No bugs reported. This does not prove there are none.')}</section>
+ <section class="card"><h3>Possible security risks</h3>${findings(a.security,'No security issues reported. This does not prove the code is secure.')}</section>
+ <section class="card"><h3>Improvement suggestions</h3>${a.quality?.length?a.quality.map(q=>`<div class="f"><strong>${esc(q.title)}</strong><p>${esc(q.detail)}</p></div>`).join(''):'<p class="mu">None returned.</p>'}</section>
+ <section class="card"><h3>Suggested test cases</h3>${a.testCases?.length?`<div class="tw"><table><thead><tr><th>Test</th><th>Input</th><th>Expected</th><th>Type</th></tr></thead><tbody>${a.testCases.map(t=>`<tr><td>${esc(t.name)}</td><td>${esc(t.input)}</td><td>${esc(t.expected)}</td><td>${t.isEdgeCase?'Edge case':'Normal'}</td></tr>`).join('')}</tbody></table></div>`:'<p class="mu">None returned.</p>'}</section>
+ ${a.improvedCode?`<section class="card"><h3>Improved code example (AI-written, untested)</h3><pre tabindex="0">${esc(a.improvedCode)}</pre></section>`:''}
+ <section class="card"><h3>Warnings and limitations</h3><ul>${(a.limitations||[]).map(l=>`<li>${esc(l)}</li>`).join('')}<li>The AI only saw the pasted code and cannot run it, so findings are unproven until you test them.</li></ul></section>`}
+
+function statusTag(s){const v=s==='Verified';return `<span class="tag ${v?'ver':'pen'}">${ic(v?'check':'clock',13)}${v?'Verified':'Pending Verification'}</span>`}
+
+function render(){
+ document.querySelectorAll('nav button').forEach(b=>{const on=b.dataset.v===(st.view==='detail'?'hist':st.view);b.classList.toggle('on',on);on?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current')});
+ const app=$('#app');
+ if(st.view==='dash')app.innerHTML=dash();
+ else if(st.view==='new')app.innerHTML=newView();
+ else if(st.view==='hist')app.innerHTML=histView();
+ else app.innerHTML=detail();
+}
+const FEATS=[['spark','AI-Powered Analysis','Plain-language code explanations and possible bug detection.',''],['shield','Security Insights','Possible vulnerabilities and risks for you to review.','cy'],['flask','Test Case Suggestions','Useful test ideas, including edge cases.',''],['check','Human Verification','Developers verify every suggestion before approval.','cy']];
+function dash(){return `<section class="hero"><div><span class="badge"><i class="dot"></i>Human-in-the-Loop AI</span><h1>Code Smarter with AI</h1><p class="lead">AI helps identify possible bugs and security risks in your code, while you stay in control. It suggests. You review, test, and decide.</p>
+<div class="row cta"><button class="btn lg" data-a="go-new">${ic('play',16)}Start Code Review</button><button class="btn g lg" data-a="go-hist">View Review History${hist.length?` (${hist.length})`:''}</button></div></div>
+<div><div class="cp" aria-hidden="true"><div class="cbar"><i></i><i></i><i></i><span>student_marks.py</span><span class="tag ai">AI review</span></div><pre><code><span class="k">def</span> average_marks(marks):
+    total = <span class="n">0</span>
+    <span class="k">for</span> m <span class="k">in</span> marks:
+        total += m
+    <span class="hl"><span class="k">return</span> total / len(marks)</span></code></pre>
+<div class="note"><span class="tag me">medium</span><span class="tag">Not confirmed</span><span class="tag sm-t">You decide</span><p>Example of a finding card: a possible divide-by-zero for an empty list. Verify before use.</p></div></div>
+<p class="cap">Illustration only. Real findings appear after you analyze your own code.</p></div></section>
+<div class="grid4">${FEATS.map(f=>`<div class="card fc"><div class="ic ${f[3]}">${ic(f[0],22)}</div><h3>${f[1]}</h3><p>${f[2]}</p></div>`).join('')}</div>
+<section class="card flow" aria-label="Human-AI workflow"><div><span class="num">1</span><p><strong>AI analyzes.</strong> It flags possible problems and says what it cannot confirm.</p></div><div><span class="num">2</span><p><strong>You review.</strong> Read each finding and test it yourself.</p></div><div><span class="num">3</span><p><strong>You decide.</strong> Only you can mark a review Verified.</p></div></section>
+<section class="card"><h3>About this preview</h3><ul style="margin:0;padding-left:1.1rem"><li>Analysis is a real call to Google Gemini, made by a server function. The API key stays on the server and is never sent to your browser.</li><li>History is stored in this browser only. It is not a database and is not shared.</li></ul></section>`}
+function skel(){return `<section class="card" aria-hidden="true">${[90,100,70,95,60].map(w=>`<div class="sk" style="width:${w}%"></div>`).join('')}</section><section class="card" aria-hidden="true">${[100,80,92].map(w=>`<div class="sk" style="width:${w}%"></div>`).join('')}</section>`}
+function newView(){const isS=st.sampleId&&st.code===SAMPLES[st.sampleId].code;
+return `<div class="ph"><h1>New code review</h1><p class="lead mu">Paste code, choose its language, and let the AI take a first pass. You stay in charge of every decision.</p></div>
+<section class="editor" aria-label="Code editor"><div class="ebar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><label><span class="sr">Language</span><select id="lang">${LANGS.map(l=>`<option ${l===st.lang?'selected':''}>${l}</option>`).join('')}</select></label>
+<label><span class="sr">Demo sample</span><select id="samp"><option value="">Load sample code...</option>${Object.entries(SAMPLES).map(([k,s])=>`<option value="${k}">${s.label}</option>`).join('')}</select></label></div>
+<textarea class="code" id="code" rows="14" spellcheck="false" aria-label="Your code" placeholder="Paste your code here...">${esc(st.code)}</textarea>
+<div class="efoot"><span class="mu sm" id="cnt">${st.code.length} / ${MAX} characters</span>${isS?'<span class="tag sm-t">Sample code (predefined). Its analysis still comes from a real AI call.</span>':''}</div></section>
+<div class="row between act"><p class="notice">${ic('alert',16)}AI suggestions may be incorrect. Verify before use.</p><button class="btn lg" data-a="analyze" ${st.loading?'disabled':''}>${st.loading?'Analyzing...':ic('play',16)+'Analyze Code'}</button></div>
+${st.loading?`<p class="mu" role="status"><span class="sp"></span> The AI is reviewing your code. This can take up to a minute.</p>${skel()}`:''}
+${st.err?`<div class="errbox" role="alert">${ic('alert',20)}<p>${esc(st.err)}</p></div>`:''}
+${!st.res&&!st.loading&&!st.err?`<section class="card empty"><div class="ic">${ic('file',22)}</div><h3>No analysis yet</h3><p class="mu">Paste code or load a sample, then click Analyze Code. Results appear here as separate sections, each marked as an AI suggestion.</p></section>`:''}
+${st.res?`${WARN}${results(st.res.analysis,st.res.lang)}<section class="card"><h3>Save this review</h3><p class="mu">Saved reviews start as Pending Verification. They are stored in this browser only.</p><div class="row"><label style="flex:1;min-width:200px">Title<input id="title" maxlength="120" value="${esc(st.title)}"></label><button class="btn" data-a="save">Save review</button></div>${st.saveMsg?`<p class="er" role="alert">${esc(st.saveMsg)}</p>`:''}</section>`:''}`}
+function histView(){const rows=hist.map(r=>`<div class="hrow"><div><strong>${esc(r.title)}</strong>${r.isSample?' <span class="tag sm-t">Sample</span>':''}</div><div class="c-lang"><span class="tag sm-t">${esc(r.lang)}</span></div><div class="c-date mu sm">${new Date(r.created).toLocaleString()}</div><div>${statusTag(r.status)}</div>
+<div class="acts">${st.delId===r.id?`<span class="sm">Delete?</span><button class="ib del" data-a="listdelyes" data-id="${r.id}">Yes, delete</button><button class="ib" data-a="listnodel">Cancel</button>`:`<button class="ib" data-a="open" data-id="${r.id}" aria-label="View ${esc(r.title)}">${ic('eye',15)}View</button><button class="ib" data-a="editopen" data-id="${r.id}" aria-label="Edit ${esc(r.title)}">${ic('pen',15)}Edit</button><button class="ib del" data-a="listdel" data-id="${r.id}" aria-label="Delete ${esc(r.title)}">${ic('trash',15)}Delete</button>`}</div>
+<div class="hm mu sm">${esc(r.lang)} · ${new Date(r.created).toLocaleString()}</div></div>`).join('');
+return `<div class="ph row between"><div><h1>Review history</h1><p class="lead mu">Saved in this browser only. It is not a database and is not shared. Clearing site data removes it.</p></div><button class="btn" data-a="go-new">${ic('plus',16)}New review</button></div>
+${storageOk?'':`<div class="errbox" role="alert">${ic('alert',20)}<p>Browser storage is blocked, so reviews cannot be saved.</p></div>`}
+${hist.length?`<section class="card hl-wrap"><div class="hhead"><span>Title</span><span>Language</span><span>Date</span><span>Verification</span><span>Actions</span></div>${rows}</section>`:`<section class="card empty"><div class="ic">${ic('clock',22)}</div><h3>No saved reviews yet</h3><p class="mu">Run a code review and save it. It will appear here with a Pending Verification status until you verify it.</p><button class="btn" data-a="go-new">Create your first review</button></section>`}`}
+function detail(){const r=hist.find(x=>x.id===st.open);if(!r){st.view='hist';return histView()}
+ return `<button class="btn g" data-a="go-hist">Back to history</button><h1>${esc(r.title)}</h1><div class="row">${statusTag(r.status)}<span class="mu sm">${esc(r.lang)} · saved ${new Date(r.created).toLocaleString()}</span></div>
+<section class="card" style="margin-top:1rem"><h3>Developer verification</h3><p class="mu">This status is your own decision. “Verified” means you reviewed the AI findings and the code yourself. It is not a claim that the code is secure.</p>
+<label>Review title<input id="etitle" maxlength="120" value="${esc(r.title)}"></label><label>Developer notes<textarea id="enotes" rows="4" maxlength="2000" placeholder="What did you check or test? What did you accept or reject?">${esc(r.notes)}</textarea></label>
+<div class="row"><button class="btn" data-a="edit">Save title and notes</button><button class="btn g" data-a="toggle">${r.status==='Verified'?'Mark as Pending again':'Mark as Verified'}</button>
+${st.confirmDel?`<span>Delete permanently?</span><button class="btn d" data-a="del">Yes, delete</button><button class="btn g" data-a="nodel">Cancel</button>`:'<button class="btn d" data-a="askdel">Delete review</button>'}</div>
+${st.saveMsg?`<p class="${st.saveMsg.startsWith('Could')?'er':'ok'}" role="status">${esc(st.saveMsg)}</p>`:''}</section>
+<section class="card"><h3>Submitted code ${r.isSample?'<span class="tag sm-t">Sample code</span>':''}</h3><pre tabindex="0">${esc(r.code)}</pre></section>${WARN}${results(r.analysis,r.lang)}`}
+
+const arr=v=>Array.isArray(v)?v:[];const s=(v,n=3000)=>typeof v==='string'?v.slice(0,n):'';
+function norm(o){o=o&&typeof o==='object'?o:{};const f=x=>({title:s(x?.title,200)||'Untitled finding',severity:['low','medium','high'].includes(x?.severity)?x.severity:'low',detail:s(x?.detail),line:s(x?.line,100),confirmed:x?.confirmed===true});
+ return{explanation:s(o.explanation),bugs:arr(o.bugs).slice(0,20).map(f),security:arr(o.security).slice(0,20).map(f),quality:arr(o.quality).slice(0,20).map(q=>({title:s(q?.title,200),detail:s(q?.detail)})),testCases:arr(o.testCases).slice(0,20).map(t=>({name:s(t?.name,200),input:s(t?.input,500),expected:s(t?.expected,500),isEdgeCase:t?.isEdgeCase===true})),improvedCode:s(o.improvedCode,12000),limitations:arr(o.limitations).slice(0,15).map(l=>s(l,500)).filter(Boolean)}}
+
+async function analyze(){
+ st.err='';st.saveMsg='';
+ if(!st.code.trim()){st.err='Please paste some code first.';return render()}
+ if(st.code.length>MAX){st.err=`Code is too long (${st.code.length} characters). The limit is ${MAX}.`;return render()}
+ st.loading=true;st.res=null;render();
+ try{
+  const r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:st.code,language:st.lang})});
+  let d=null;try{d=await r.json()}catch{}
+  if(!r.ok)throw{code:'api',message:d?.error?.message||`Request failed (${r.status}).`};
+  const raw=d?.analysis;
+  const a=norm(raw);
+  if(!a.explanation&&!a.bugs.length&&!a.security.length&&!a.quality.length&&!a.testCases.length)throw{code:'empty'};
+  st.res={analysis:a,lang:st.lang,code:st.code,isSample:!!(st.sampleId&&st.code===SAMPLES[st.sampleId].code)};
+  if(!st.title)st.title=`${st.lang} review ${new Date().toLocaleDateString()}`;
+ }catch(e){
+  st.err=e?.code==='api'?e.message:e?.code==='empty'?'The AI response was empty or unreadable. Please try again.':e instanceof TypeError?'Cannot reach the server. Check your connection and try again.':'The analysis failed. Please try again.';
+ }finally{st.loading=false;render()}
+}
+
+document.addEventListener('click',e=>{
+ const nb=e.target.closest('nav button');if(nb){st.view=nb.dataset.v;st.saveMsg='';st.confirmDel=false;return render()}
+ const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;
+ if(a==='go-new'){st.view='new';render()}else if(a==='go-hist'){st.view='hist';st.confirmDel=false;st.saveMsg='';render()}
+ else if(a==='analyze')analyze();
+ else if(a==='save'){const t=($('#title')?.value||'').trim();st.title=t;if(!t){st.saveMsg='Give the review a title before saving.';return render()}
+  const r={id:'r'+Date.now(),title:t,lang:st.res.lang,code:st.res.code,isSample:st.res.isSample,analysis:st.res.analysis,status:'Pending Verification',notes:'',created:Date.now()};
+  hist.unshift(r);persist();if(!storageOk){hist.shift();st.saveMsg='Could not save: browser storage is blocked.';return render()}
+  st.open=r.id;st.view='detail';st.saveMsg='';st.res=null;st.title='';render()}
+ else if(a==='open'){st.open=b.dataset.id;st.view='detail';st.saveMsg='';st.confirmDel=false;render()}
+ else if(a==='editopen'){st.open=b.dataset.id;st.view='detail';st.saveMsg='';st.confirmDel=false;render();$('#etitle')?.focus()}
+ else if(a==='listdel'){st.delId=b.dataset.id;render()}else if(a==='listnodel'){st.delId=null;render()}
+ else if(a==='listdelyes'){hist=hist.filter(x=>x.id!==st.delId);persist();st.delId=null;render()}
+ else{const r=hist.find(x=>x.id===st.open);if(!r)return;
+  if(a==='edit'){const t=($('#etitle').value||'').trim();if(!t){st.saveMsg='Could not save: title cannot be empty.';return render()}r.title=t;r.notes=$('#enotes').value.slice(0,2000);persist();st.saveMsg=storageOk?'Changes saved.':'Could not save: browser storage is blocked.'}
+  else if(a==='toggle'){r.title=($('#etitle').value||r.title).trim();r.notes=$('#enotes').value;r.status=r.status==='Verified'?'Pending Verification':'Verified';persist();st.saveMsg=r.status==='Verified'?'Marked as Verified.':'Moved back to Pending Verification.'}
+  else if(a==='askdel')st.confirmDel=true;else if(a==='nodel')st.confirmDel=false;
+  else if(a==='del'){hist=hist.filter(x=>x.id!==r.id);persist();st.confirmDel=false;st.view='hist'}
+  render()}
+});
+document.addEventListener('input',e=>{if(e.target.id==='code'){st.code=e.target.value;st.err='';const c=$('#cnt');if(c)c.textContent=`${st.code.length} / ${MAX} characters`}});
+document.addEventListener('change',e=>{
+ if(e.target.id==='lang')st.lang=e.target.value;
+ if(e.target.id==='samp'&&e.target.value){const x=SAMPLES[e.target.value];st.code=x.code;st.lang=x.lang;st.sampleId=e.target.value;st.title=x.title;st.res=null;st.err='';st.saveMsg='';render()}
+});
+$('#lg').innerHTML=ic('code',22);
+$('nav').innerHTML=[['dash','Dashboard','grid'],['new','New Code Review','plus'],['hist','Review History','clock']].map(([v,l,i])=>`<button data-v="${v}">${ic(i,17)}<span>${l}</span></button>`).join('');
+render();
+</script>
+</body>
+</html>
